@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -2080,5 +2081,21 @@ func validateServiceDiscoveryServiceHealthCheckConfigType(v interface{}, k strin
 		}
 	}
 	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %s", k, validType, value))
+	return
+}
+
+func validateAmazonSideAsn(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVpnGateway.html
+	asn, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%q (%q) must be a 64-bit integer", k, v))
+		return
+	}
+
+	if (asn < 64512) || (asn > 65534 && asn < 4200000000) || (asn > 4294967294) {
+		errors = append(errors, fmt.Errorf("%q (%q) must be in the range 64512 to 65534 or 4200000000 to 4294967294", k, v))
+	}
 	return
 }
